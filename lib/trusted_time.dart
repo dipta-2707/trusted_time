@@ -1,3 +1,3 @@
-library trusted_time;
+library trusted_time_service;
 
-export 'src/native_uptime.dart';
+export 'src/trusted_time_service.dart';
