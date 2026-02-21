@@ -1,18 +1,12 @@
 cmake_minimum_required(VERSION 3.10.2)
 project(uptime)
 
+set(SHARED_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../src")
+
 add_library(
         uptime
         SHARED
-        uptime.c
+        "${SHARED_SRC_DIR}/uptime.c"
 )
 
-find_library(
-        log-lib
-        log
-)
-
-target_link_libraries(
-        uptime
-        ${log-lib}
-)
+target_include_directories(uptime PRIVATE "${SHARED_SRC_DIR}")

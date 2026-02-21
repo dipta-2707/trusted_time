@@ -1,7 +1,7 @@
 #include "uptime.h"
 #include <time.h>
 
-__attribute__((visibility("default")))
+__attribute__((visibility("default"))) __attribute__((used))
 int64_t getUptimeMillis() {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);

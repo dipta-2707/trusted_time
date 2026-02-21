@@ -7,6 +7,7 @@
 extern "C" {
 #endif
 
+__attribute__((visibility("default"))) __attribute__((used))
 int64_t getUptimeMillis(void);
 
 #ifdef __cplusplus
