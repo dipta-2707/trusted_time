@@ -34,7 +34,7 @@ class TrustedTimeService {
 
   /// HTTPS trusted time provider (UTC)
   static const String _trustedTimeUrl =
-      'https://timeapi.io/api/Time/current/zone?timeZone=UTC';
+      'https://time.shafi.dev/?timeZone=UTC';
 
   DateTime? _anchorUtc;
   int? _anchorUptimeMillis;
@@ -86,7 +86,7 @@ class TrustedTimeService {
       }
 
       final data = jsonDecode(response.body);
-      final datetimeStr = data['dateTime'] as String;
+      final datetimeStr = data['utcTime'] as String;
 
       // Parse as UTC
       final serverUtc = DateTime.parse(datetimeStr);
