@@ -1,7 +1,6 @@
 name: trusted_time_service
 description: "A tamper-resistant trusted time service for Flutter and Dart apps."
 version: 1.0.0
-publish_to: "https://pub.dev"
 homepage: https://github.com/dipta-2707/trusted_time
 
 environment:
