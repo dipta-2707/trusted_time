@@ -8,16 +8,11 @@ import 'native_uptime.dart';
 
 /// A tamper-resistant trusted time service.
 ///
-/// This service:
-/// - Fetches UTC time from a trusted HTTPS source
-/// - Anchors it to native monotonic uptime (via FFI)
-/// - Calculates current time using uptime delta
-/// - Does NOT rely on device clock or timezone
+/// This service provides a **secure and reliable time source**
+/// that does not depend on the device system clock, which can be
+/// modified by users or malicious apps.
 ///
-/// If initialization fails or hasn't occurred, it falls back to
-/// device system time and logs a warning.
-///
-/// Recommended usage:
+/// ## Recommended usage
 /// ```dart
 /// await TrustedTimeService().initialize();
 /// final now = TrustedTimeService().now();
@@ -27,12 +22,15 @@ class TrustedTimeService {
 
   static final TrustedTimeService _instance = TrustedTimeService._internal();
 
-  /// Singleton factory
+  /// Returns the singleton instance of [TrustedTimeService].
+  ///
+  /// This ensures that the same trusted anchor and uptime reference
+  /// are used throughout the entire app lifecycle.
   factory TrustedTimeService() => _instance;
 
   final UptimeFFI _uptime = UptimeFFI();
 
-  /// HTTPS trusted time provider (UTC)
+  /// HTTPS endpoint used to fetch trusted UTC time.
   static const String _trustedTimeUrl =
       'https://time.shafi.dev/?timeZone=UTC';
 
@@ -42,16 +40,45 @@ class TrustedTimeService {
   int _defaultOffsetHours = 0;
   int _defaultOffsetMinutes = 0;
 
-  /// Whether the service has been initialized successfully.
+  /// Returns whether the service has been initialized successfully.
+  ///
+  /// The service is considered initialized when:
+  /// - Trusted UTC time has been fetched.
+  /// - Native uptime has been anchored.
+  ///
+  /// If `false`, calls to [now] and [nowUtc] will fallback to system time.
   bool get isInitialized => _anchorUtc != null && _anchorUptimeMillis != null;
 
   /// Initializes the trusted time service.
   ///
-  /// - Fetches trusted UTC from HTTPS
-  /// - Anchors it with monotonic uptime
-  /// - Optionally sets default timezone offset
+  /// This method must be called **once at app startup** before
+  /// accessing trusted time.
   ///
-  /// Throws [Exception] if initialization fails.
+  /// ## Parameters
+  /// - [defaultOffsetHours]: Default timezone hour offset applied to [now].
+  /// - [defaultOffsetMinutes]: Default timezone minute offset.
+  /// - [timeout]: Maximum time to wait for the trusted server.
+  /// - [trustedAnchorUtc]: Optional manual time anchor.
+  ///
+  /// ## Manual anchor usage
+  /// Useful when:
+  /// - You already have a trusted time source.
+  /// - Offline or cached trusted time is available.
+  /// - Unit testing.
+  ///
+  /// Example:
+  /// ```dart
+  /// await TrustedTimeService().initialize(
+  ///   trustedAnchorUtc: serverTime,
+  /// );
+  /// ```
+  /// ## Throws
+  /// Throws an [Exception] if:
+  /// - Network request fails.
+  /// - Timeout occurs.
+  /// - Invalid server response.
+  ///
+  /// Even if this fails, calls to [now] remain safe by falling back.
   Future<void> initialize({
     int? defaultOffsetHours,
     int? defaultOffsetMinutes,
@@ -107,13 +134,14 @@ class TrustedTimeService {
     }
   }
 
-  /// Returns current trusted UTC time.
+  /// Returns the current trusted UTC time.
   ///
-  /// Uses:
-  /// `anchorUtc + (currentUptime - anchorUptime)`
+  /// ## Fallback behavior
+  /// If the service has not been initialized:
+  /// - Returns system UTC time.
+  /// - Logs a warning.
   ///
-  /// If service is not initialized, returns system [DateTime.now().toUtc()]
-  /// and logs a warning.
+  /// This makes the method safe to call anytime.
   DateTime nowUtc() {
     if (!isInitialized) {
       developer.log(
@@ -129,10 +157,27 @@ class TrustedTimeService {
     return _anchorUtc!.add(Duration(milliseconds: deltaMillis));
   }
 
-  /// Returns trusted time adjusted by offset.
+  /// Returns the trusted local time using a configurable offset.
   ///
-  /// This does NOT rely on device timezone, unless falling back.
-  /// Offset must be explicitly provided or pre-configured.
+  /// Unlike `DateTime.now()`, this method:
+  /// - Does NOT use the device timezone.
+  /// - Prevents timezone tampering.
+  /// - Allows explicit control of time offset.
+  ///
+  /// ## Offset priority
+  /// 1. Explicit parameters.
+  /// 2. Default offset configured in [initialize].
+  ///
+  /// ## Example
+  /// ```dart
+  /// final local = TrustedTimeService().now(
+  ///   offsetHours: 6,
+  /// );
+  /// ```
+  ///
+  /// This is useful when:
+  /// - The app must follow a fixed server timezone.
+  /// - Time consistency across regions is required.
   DateTime now({int? offsetHours, int? offsetMinutes}) {
     final utc = nowUtc();
 
@@ -144,7 +189,17 @@ class TrustedTimeService {
     );
   }
 
-  /// Clears anchor (forces reinitialization).
+  /// Clears the current trusted time anchor.
+  ///
+  /// After calling this:
+  /// - The service will behave as uninitialized.
+  /// - Calls to [now] and [nowUtc] will fallback.
+  /// - [initialize] must be called again.
+  ///
+  /// Useful when:
+  /// - User logs out.
+  /// - Security reset is required.
+  /// - App needs to refresh trusted time.
   void reset() {
     _anchorUtc = null;
     _anchorUptimeMillis = null;
