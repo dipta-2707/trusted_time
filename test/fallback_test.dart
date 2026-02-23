@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:trusted_time_service/trusted_time.dart';
+import 'package:trusted_time_service/trusted_time_service.dart';
 
 void main() {
   test('TrustedTimeService fallback test', () {
