@@ -31,8 +31,7 @@ class TrustedTimeService {
   final UptimeFFI _uptime = UptimeFFI();
 
   /// HTTPS endpoint used to fetch trusted UTC time.
-  static const String _trustedTimeUrl =
-      'https://time.shafi.dev/?timeZone=UTC';
+  static const String _trustedTimeUrl = 'https://time.shafi.dev/?timeZone=UTC';
 
   DateTime? _anchorUtc;
   int? _anchorUptimeMillis;
