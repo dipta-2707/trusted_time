@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:trusted_time/trusted_time.dart';
+import 'package:trusted_time_service/trusted_time.dart';
 
 void main() {
   runApp(const MyApp());

@@ -8,10 +8,10 @@ class UptimeFFI {
   late final _DartUptime _getUptime;
 
   UptimeFFI() {
-      final dylib = _loadLibrary();
-      _getUptime = dylib
-          .lookup<NativeFunction<_NativeUptime>>('getUptimeMillis')
-          .asFunction();
+    final dylib = _loadLibrary();
+    _getUptime = dylib
+        .lookup<NativeFunction<_NativeUptime>>('getUptimeMillis')
+        .asFunction();
   }
 
   int getUptimeMillis() => _getUptime();
